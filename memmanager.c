@@ -13,7 +13,8 @@ Chunk* new_chunk(void* start, void* end) {
     Chunk *ptr;
     ptr = cool_allocator(sizeof(Chunk));
     ptr->start = start; ptr->end = end;
-    ptr->prev = NULL; ptr->next = NULL;
+    //ptr->prev = NULL; 
+    ptr->next = NULL;
     return ptr;
 }
 
@@ -31,8 +32,10 @@ void* try_allocate(Page* page, size_t size) {
         diff = ptr2->start - ptr1->end;
         if (diff >= size) {
             temp = new_chunk(ptr1->end, ptr1->end+size);
-            ptr1->next = temp; temp->prev = ptr1;
-            ptr2->prev = temp; temp->next = ptr2;
+            ptr1->next = temp; 
+            //temp->prev = ptr1;
+            //ptr2->prev = temp; 
+            temp->next = ptr2;
             page->size -= size;
             return temp->start;
         }
@@ -45,7 +48,7 @@ void* try_allocate(Page* page, size_t size) {
     diff = end - ptr1->end;
     if (diff >= size) {
         temp = new_chunk(ptr1->end, ptr1->end+size);
-        ptr1->next = temp; temp->prev = ptr1;
+        ptr1->next = temp; //temp->prev = ptr1;
         page->size -= size;
         return temp->start;
     }
@@ -89,14 +92,15 @@ void *memloc(size_t size) {
 
 void chunkfree(Page* page, void* pointer) {
     Chunk* ptr = page->chunk_chain;
+    Chunk* prv = NULL;
     while (ptr != NULL) {
         if (pointer == ptr->start) {
-            if (ptr->prev) ptr->prev->next = ptr->next;
+            if (prv) prv->next = ptr->next;
             else page->chunk_chain = NULL;
-            if (ptr->next) ptr->next->prev = ptr->prev;
             cool_deallocator(ptr);
             return;
         }
+        prv = ptr;
         ptr = ptr->next;
     }
     //no such adress or wrongly selected
@@ -120,12 +124,12 @@ void memfree(void *pointer) {
 
 void destroy_chunks(Page* page) {
     Chunk* chunkptr = page->chunk_chain;
-    if (!chunkptr) return;
-    while (chunkptr->next != NULL) {
+    Chunk* prv = NULL;
+    while (chunkptr != NULL) {
+        prv = chunkptr;
         chunkptr = chunkptr->next;
-        cool_deallocator(chunkptr->prev);
+        cool_deallocator(prv);
     }
-    cool_deallocator(chunkptr);
     page->chunk_chain = NULL;
 }
 

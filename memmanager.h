@@ -9,7 +9,7 @@
 struct Chunk_struct {
     void* start;
     void* end; // points to adress AFTER the chunk
-    struct Chunk_struct *next, *prev;
+    struct Chunk_struct *next;
 };
 typedef struct Chunk_struct Chunk;
 

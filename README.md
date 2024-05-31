@@ -11,7 +11,12 @@ The programm also deallocates memory for you at the end of runtime, if you forgo
 * void memfree(void *ptr) - free allocated memory (in fact, it will deallocate only chunk. the REAL deallocation happens at the end of the programm with deallocation of all pages)
 * void programm_end() - deallocates all the memory for usage and service (Page memory, Chunk memory). ALWAYS APPEND AT THE END OF YOUR PROGRAMM
 
-Other functions are meant to be used only if you really now what you are doing.
+You can use
+* void* try_allocate(Page* page, size_t size)
+* Page* new_page(size_t size) 
+to specify allocation yourself. Do not forget to free page memory and page itself after.
+
+Other functions are meant to be used only if you really now what they are doing.
 
 # Structure
 Standart structure. A brief explanation:

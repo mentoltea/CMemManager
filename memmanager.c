@@ -68,10 +68,10 @@ void* try_allocate(Page* page, size_t size) {
 
 Page* new_page(size_t size) {
     Page *ptr;
-    ptr = cool_allocator(sizeof(Page));
+    ptr = cool_allocator(sizeof(Page) + size);
     ptr->prev = NULL; ptr->next = NULL;
     ptr->chunk_chain = NULL;
-    ptr->pointer = cool_allocator(size);
+    ptr->pointer = (void*) (ptr+1);
     ptr->size = size; ptr->capacity = size;
     return ptr;
 }
@@ -101,6 +101,8 @@ void *memloc(size_t size) {
     result = try_allocate(ptr->next, size);
     return result;
 }
+
+
 
 void chunkfree(Page* page, void* pointer) {
     Chunk* ptr = page->chunk_chain;
@@ -152,12 +154,12 @@ void destroy_pages() {
     if (!start_page) return;
     while (pageptr->next != NULL) {
         //destroy_chunks(pageptr);
-        cool_deallocator(pageptr->pointer);
+        //cool_deallocator(pageptr->pointer);
         pageptr = pageptr->next;
         cool_deallocator(pageptr->prev);
     }
     //destroy_chunks(pageptr);
-    cool_deallocator(pageptr->pointer);
+    //cool_deallocator(pageptr->pointer);
     cool_deallocator(pageptr);
     start_page = NULL;
 }

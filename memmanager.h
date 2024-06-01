@@ -31,6 +31,7 @@ extern deallocator_func_type *cool_deallocator;
 void init_allocator(allocator_func_type alloc, deallocator_func_type dealloc);
 void *memloc(size_t size);
 void memfree(void *ptr);
+void preallocate(size_t size);
 void programm_end();
 
 

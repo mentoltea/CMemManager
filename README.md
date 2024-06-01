@@ -8,8 +8,12 @@ The programm also deallocates memory for you at the end of runtime, if you forgo
 # Usage
 * void init_allocator(allocator_func_type alloc, deallocator_func_type dealloc) - set your custom allocator and deallocator
 * void *memloc(size_t size) - allocate size bytes of memory
+* void *memnew(size_t size) - create a new special page with given size and allocate the whole page
 * void memfree(void *ptr) - free allocated memory (in fact, it will deallocate only chunk. the REAL deallocation happens at the end of the programm with deallocation of all pages)
+* void prealloc(size_t size) - preallocate page with a given size (in the beggining of the page chain)
+* void prealloc_end(size_t size) - preallocate page with a given size (in the end of the page chain)
 * void programm_end() - deallocates all the memory for usage and service (Page memory, Chunk memory). ALWAYS APPEND AT THE END OF YOUR PROGRAMM
+* void page_info(short chunk_info) - print out the usage of memory in pages. if chunk_info = 1, prints the chunk chain info as well
 
 You can use
 * void* try_allocate(Page* page, size_t size)

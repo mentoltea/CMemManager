@@ -7,7 +7,6 @@
 #define PAGE_SIZE 4096
 
 struct Chunk_struct {
-    //void* start;
     void* end; // points to adress AFTER the chunk
     struct Chunk_struct *next;
 };
@@ -30,17 +29,19 @@ extern deallocator_func_type *cool_deallocator;
 
 void init_allocator(allocator_func_type alloc, deallocator_func_type dealloc);
 void *memloc(size_t size);
+void *memnew(size_t size);
 void memfree(void *ptr);
-void preallocate(size_t size);
+void prealloc(size_t size);
+void prealloc_end(size_t size);
 void programm_end();
 
+void page_info(short chunk_info);
 
 void* try_allocate(Page* page, size_t size);
 Page* new_page(size_t size);
 
 Chunk* new_chunk(void* start, void* end);
 void chunkfree(Page* page, void* pointer);
-//void destroy_chunks(Page* page);
 void destroy_pages();
 
 extern void* chunk_data(Chunk* ptr);

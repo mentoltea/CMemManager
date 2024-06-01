@@ -102,7 +102,50 @@ void *memloc(size_t size) {
     return result;
 }
 
+void *memnew(size_t size) {
+    if (size == 0) return NULL;
+    size += sizeof(Chunk);
+    Page* ptr;
+    void* result;
+    if (start_page==NULL) {
+        start_page = new_page(size);
+    }
+    ptr = start_page;
+    while (ptr->next != NULL) {
+        ptr = ptr->next;
+    }
+    ptr->next = new_page(size);
+    ptr->next->prev = ptr;
+    result = try_allocate(ptr->next, size);
+    return result;
+}
 
+void prealloc(size_t size) {
+    if (size <= sizeof(Chunk)) size = PAGE_SIZE;
+
+    if (start_page==NULL) {
+        start_page = new_page(size);
+    } else {
+        start_page->prev = new_page(size);
+        start_page->prev->next = start_page;
+        start_page = start_page->prev;
+    }
+}
+
+void prealloc_end(size_t size) {
+    if (size <= sizeof(Chunk)) size = PAGE_SIZE;
+
+    if (start_page==NULL) {
+        start_page = new_page(size);
+    } else {
+        Page* ptr = start_page;
+        while (ptr->next != NULL) {
+            ptr = ptr->next;
+        }
+        ptr->next = new_page(size);
+        ptr->next->prev = ptr;
+    }
+}
 
 void chunkfree(Page* page, void* pointer) {
     Chunk* ptr = page->chunk_chain;
@@ -110,7 +153,7 @@ void chunkfree(Page* page, void* pointer) {
     while (ptr != NULL) {
         if (pointer == chunk_data(ptr)) {
             if (prv) prv->next = ptr->next;
-            else page->chunk_chain = NULL;
+            else page->chunk_chain = ptr->next;
 
             page->size += chunk_diff(ptr->end, ptr);
             return;
@@ -121,14 +164,14 @@ void chunkfree(Page* page, void* pointer) {
     //no such adress or wrongly selected
 }
 
-void memfree(void *pointer) {
+void memfree(void *data) {
     Page* ptr = start_page;
     void *start, *end;
     while (ptr != NULL) {
         start = ptr->pointer;
         end = ptr->pointer + ptr->capacity;
-        if (pointer >= start && pointer < end) {
-            chunkfree(ptr, pointer);
+        if (data >= start && data < end) {
+            chunkfree(ptr, data);
             return;
         }
         ptr = ptr->next;
@@ -136,34 +179,45 @@ void memfree(void *pointer) {
     //no such adress in use
 }
 
-/*
-void destroy_chunks(Page* page) {
-    Chunk* chunkptr = page->chunk_chain;
-    Chunk* prv = NULL;
-    while (chunkptr != NULL) {
-        prv = chunkptr;
-        chunkptr = chunkptr->next;
-    }
-    page->chunk_chain = NULL;
-    page->size = page->capacity;
-}
-*/
-
 void destroy_pages() {
     Page* pageptr = start_page;
     if (!start_page) return;
     while (pageptr->next != NULL) {
-        //destroy_chunks(pageptr);
-        //cool_deallocator(pageptr->pointer);
         pageptr = pageptr->next;
         cool_deallocator(pageptr->prev);
     }
-    //destroy_chunks(pageptr);
-    //cool_deallocator(pageptr->pointer);
     cool_deallocator(pageptr);
     start_page = NULL;
 }
 
 void programm_end() {
     destroy_pages();
+}
+
+
+void page_info(short chunk_info) {
+    Page* ptr;
+    Chunk* ch;
+    ptr = start_page;
+    int i=0;
+    size_t total = 0;
+    printf("\n\n--------\n");
+    while (ptr!=NULL){
+        total = total + (size_t)(ptr->capacity - ptr->size);
+        printf("%d: %ld/%ld (%ld used)\n", i, ptr->size, ptr->capacity, ptr->capacity - ptr->size);
+        if (chunk_info) {
+            ch = ptr->chunk_chain;
+            while (ch != NULL) {
+                if (chunk_diff(ch->end, ch) >= sizeof(int)) 
+                    printf("\t%d\n", *((unsigned int*)chunk_data(ch)));
+                else
+                    printf("\t%d\n", (int)*((unsigned char*)chunk_data(ch)));
+                ch = ch->next;
+            }
+        }
+        ptr = ptr->next;
+        i++;
+    }
+    printf("total: %ld used\n", total);
+    printf("--------\n\n");
 }
